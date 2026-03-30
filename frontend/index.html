@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZK Vault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/chain.css" />
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-text">ZK<span class="logo-accent">Vault</span></span>
+    </div>
+  </div>
+</header>
+
+<section class="scenarios">
+  <div class="tabs" role="tablist">
+    <button class="tab active" id="tab-login"   role="tab" aria-selected="true"  onclick="switchTab('login')">ZK-Login</button>
+    <button class="tab"        id="tab-finance" role="tab" aria-selected="false" onclick="switchTab('finance')">ZK-Finance</button>
+    <button class="tab"        id="tab-vote"    role="tab" aria-selected="false" onclick="switchTab('vote')">ZK-Vote</button>
+    <button class="tab"        id="tab-chain"   role="tab" aria-selected="false" onclick="switchTab('chain')">ZK-Chain</button>
+  </div>
+
+  <!-- ZK-Login Panel -->
+  <div class="panel active" id="panel-login">
+    <div class="panel-header">
+      <div>
+        <h2>ZK-Login</h2>
+        <p class="panel-subtitle">Prove you know your password — without the server ever seeing it. Not even hashed.</p>
+      </div>
+      <div class="protocol-badge">Schnorr Identification Protocol</div>
+    </div>
+    <div class="demo-layout">
+      <div class="control-card">
+        <h3>Try it</h3>
+        <div class="field-group">
+          <label for="login-password">Your Password</label>
+          <input type="password" id="login-password" placeholder="Enter any password…" autocomplete="off" />
+        </div>
+        <button class="btn-primary" id="btn-login-prove" onclick="runSchnorr()">
+          <span>Generate ZK Proof</span><span class="btn-arrow">→</span>
+        </button>
+        <div class="separator">or</div>
+        <h3 style="margin-top:0">Soundness Test</h3>
+        <p class="hint">Watch a cheater get caught in real-time.</p>
+        <div class="field-group">
+          <label for="login-real">Real Password</label>
+          <input type="password" id="login-real" placeholder="Correct password…" autocomplete="off" />
+        </div>
+        <div class="field-group">
+          <label for="login-fake">Fake Password (attacker uses)</label>
+          <input type="password" id="login-fake" placeholder="Wrong password…" autocomplete="off" />
+        </div>
+        <button class="btn-danger" id="btn-login-cheat" onclick="runCheat()">
+          <span>Simulate Attack</span><span class="btn-arrow">→</span>
+        </button>
+      </div>
+      <div class="proof-area" id="proof-login">
+        <div class="proof-placeholder">
+          <p>Enter a password and click <strong>Generate ZK Proof</strong> to see the Schnorr protocol in action.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZK-Finance Panel -->
+  <div class="panel" id="panel-finance">
+    <div class="panel-header">
+      <div>
+        <h2>ZK-Finance</h2>
+        <p class="panel-subtitle">Prove your salary meets a loan threshold — without revealing your actual salary to the bank.</p>
+      </div>
+      <div class="protocol-badge">Pedersen Commitments + Range Proof</div>
+    </div>
+    <div class="demo-layout">
+      <div class="control-card">
+        <h3>Configure</h3>
+        <div class="field-group">
+          <label for="salary-input">Your Salary (kept secret)</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" id="salary-input" placeholder="75000" min="0" max="1000000" value="75000" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="threshold-input">Bank's Threshold (public)</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" id="threshold-input" placeholder="50000" min="0" max="1000000" value="50000" />
+          </div>
+        </div>
+        <div class="salary-slider-wrap">
+          <input type="range" id="salary-slider" min="0" max="200000" value="75000" step="1000" oninput="syncSalarySlider(this.value)" />
+          <div class="slider-labels"><span>$0</span><span id="slider-val">$75,000</span><span>$200k</span></div>
+        </div>
+        <button class="btn-primary" id="btn-range-prove" onclick="runRange()">
+          <span>Prove Eligibility</span><span class="btn-arrow">→</span>
+        </button>
+      </div>
+      <div class="proof-area" id="proof-finance">
+        <div class="proof-placeholder">
+          <p>Set your salary and the threshold, then click <strong>Prove Eligibility</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZK-Vote Panel -->
+  <div class="panel" id="panel-vote">
+    <div class="panel-header">
+      <div>
+        <h2>ZK-Vote</h2>
+        <p class="panel-subtitle">Cast a verifiable, anonymous vote. The system proves your ballot is valid — but never learns your choice.</p>
+      </div>
+      <div class="protocol-badge">Disjunctive Sigma Protocol (OR-Proof)</div>
+    </div>
+    <div class="demo-layout">
+      <div class="control-card">
+        <h3>Cast Your Ballot</h3>
+        <p class="hint">Your vote is sealed in a cryptographic commitment. Even the election authority cannot see it — yet can verify it is valid.</p>
+        <div class="vote-buttons">
+          <button class="vote-btn yes" id="vote-yes" onclick="selectVote(1)">YES</button>
+          <button class="vote-btn no"  id="vote-no"  onclick="selectVote(0)">NO</button>
+        </div>
+        <div id="vote-selected" class="vote-selected-label" style="display:none"></div>
+        <button class="btn-primary" id="btn-vote-prove" onclick="runVote()" disabled>
+          <span>Submit Anonymous Ballot</span><span class="btn-arrow">→</span>
+        </button>
+      </div>
+      <div class="proof-area" id="proof-vote">
+        <div class="proof-placeholder">
+          <p>Choose <strong>YES</strong> or <strong>NO</strong> and submit your anonymous ballot.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ZK-Chain Panel (outside .scenarios so it can be full-width) -->
+<div class="panel chain-panel" id="panel-chain">
+  <div class="panel-header">
+    <div>
+      <h2>ZK-Chain</h2>
+      <p class="panel-subtitle">A simulated ZK-Rollup blockchain. Transaction amounts are hidden on-chain — only ZK proofs are posted. Nodes verify proofs, not transactions.</p>
+    </div>
+    <div class="protocol-badge">ZK-Rollup: Pedersen + Range + Homomorphic Conservation</div>
+  </div>
+
+  <div class="chain-layout">
+    <!-- Left: controls -->
+    <div class="chain-controls">
+      <div class="control-card">
+        <h3>Balances (Hidden On-Chain)</h3>
+        <p class="hint">Actual balances are only known to each user. The blockchain stores only commitments.</p>
+        <div id="chain-balances"></div>
+      </div>
+
+      <div class="control-card" style="margin-top:1rem">
+        <h3>Add Transaction to Mempool</h3>
+        <div class="field-group">
+          <label for="tx-sender">Sender</label>
+          <select id="tx-sender" class="chain-select">
+            <option>Marty</option><option>Gloria</option><option>Skipper</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="tx-receiver">Receiver</label>
+          <select id="tx-receiver" class="chain-select">
+            <option>Gloria</option><option>Marty</option><option>Skipper</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="tx-amount">Amount (coins)</label>
+          <input type="number" id="tx-amount" value="100" min="1" max="2000" />
+        </div>
+        <button class="btn-primary" onclick="addChainTx()">
+          <span>Add to Mempool</span><span class="btn-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="control-card" id="chain-mempool-card" style="margin-top:1rem">
+        <h3>Mempool</h3>
+        <div id="chain-mempool"><p class="hint">No pending transactions.</p></div>
+        <button class="btn-primary" id="btn-mine" onclick="mineBlock()" disabled style="margin-top:0.8rem">
+          <span>Mine Block (Generate Proof)</span><span class="btn-arrow">→</span>
+        </button>
+      </div>
+
+      <div style="margin-top:1rem;display:flex;gap:0.5rem">
+        <button class="btn-danger" onclick="resetChain()" style="flex:1;justify-content:center">
+          Reset Chain
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: blockchain visualisation -->
+    <div class="chain-view">
+      <div class="chain-compare">
+        <div class="compare-col bad">
+          <div class="compare-label">Traditional Blockchain</div>
+          <div class="compare-desc">All amounts public. Every node re-executes everything.</div>
+        </div>
+        <div class="compare-col good">
+          <div class="compare-label">ZK-Rollup (This)</div>
+          <div class="compare-desc">Amounts hidden. Nodes verify 1 proof per block.</div>
+        </div>
+      </div>
+      <div id="chain-blocks"></div>
+      <div id="chain-proof-detail"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+<script src="js/schnorr_demo.js"></script>
+<script src="js/range_demo.js"></script>
+<script src="js/vote_demo.js"></script>
+<script src="js/chain_demo.js"></script>
+</body>
+</html>
